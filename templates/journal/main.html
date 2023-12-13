@@ -32,6 +32,7 @@
       }
 
       .right_body {
+          padding-top: 20px;
           width: 300px;
           height: 1000px;
           left: 72%;
@@ -43,6 +44,7 @@
           width: 480px;
           margin: 10px;
           min-height: auto;
+          padding-bottom: 10px;
       }
 
       .feed_img {
@@ -147,6 +149,12 @@
           flex-direction: column;
       }
 
+    @media screen and (max-width: 1280px) {
+        .right_body {
+            display: none;
+        }
+    }
+
     .modal_overlay {
         width: 100%;
         height: 100%;
@@ -180,9 +188,11 @@
         justify-content: space-between;
         font-weight: bold;
         font-size: 20px;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.18);
     }
 
     .modal_title_side{
+        margin: 5px;
         flex: 0 0 40px;
         text-align: center;
     }
@@ -190,10 +200,37 @@
     .modal_image_upload{
         outline: 2px dashed black ;
         outline-offset:-10px;
-        text-align: center;
         transition: all .15s ease-in-out;
         width:780px;
         height: 548px;
+        text-align: center;
+        line-height: 548px;
+    }
+
+    .modal_image_upload_content{
+        outline: 2px dashed black ;
+        outline-offset:-10px;
+        text-align: center;
+        transition: all .15s ease-in-out;
+        width:500px;
+        height: 548px;
+    }
+
+    .modal_image_content{
+        display: flex;
+        flex-direction: row;
+    }
+
+    .modal_content_write{
+        display: flex;
+        flex-direction: column;
+        border-left: 1px solid rgba(0, 0, 0, 0.18);;
+    }
+
+    .feed_content_textarea{
+        resize: none;
+        width: 294px;
+        border: none;
     }
 
       span{
@@ -233,7 +270,7 @@
                     </div>
                     <span class="feed_name_txt"> {{ feed.user_id }} </span>
                 </div>
-                <img class="feed_img" src="{{ feed.image }}">
+                <img class="feed_img" src="{% get_media_prefix %}{{ feed.image }}">
                 <div class="feed_icon">
                     <div>
                       <span class="material-icons-outlined">
@@ -335,12 +372,50 @@
                 <div class="modal_title_side"></div>
                 <div> 새 게시물 </div>
                 <div class="modal_title_side">
-                    <span id="close_modal" class="material-icons-outlined">
+                    <span class="close_modal material-icons-outlined">
                         close
                     </span>
                 </div>
             </div>
-            <div class="modal_image_upload"></div>
+            <div class="modal_image_upload">
+                <span style="text-align: center"> 사진을 여기에 끌어다 놓으세요. </span>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal_add_feed_content" class="modal_overlay modal_overlay_content">
+        <div class="modal_window">
+            <div class="modal_title">
+                <div class="modal_title_side"></div>
+                <div style="margin: 5px"> 새 게시물 </div>
+                <div class="modal_title_side">
+                    <span class="close_modal material-icons-outlined">
+                        close
+                    </span>
+                </div>
+            </div>
+            <div class="modal_image_content">
+                <div id="input_image" class="modal_image_upload_content">
+
+                </div>
+                <div class="modal_content_write">
+                    <div class="feed_name">
+                        <div class="profile_box">
+                            <img id="input_profile_image" class="profile_img" src="https://i.namu.wiki/i/Qvk18CBALY3A7CKoYdienLC1B8q8JXEZIiydvuxxVFFqGYjDmDOaY2vB0YX_P_WbxA5REh9NtAdhi5L1TLEx1A.webp">
+                        </div>
+                        <span id="input_user_id" class="feed_name_txt"> 96butter </span>
+                    </div>
+                    <div style="height: 440px">
+                        <textarea id="input_content" class="feed_content_textarea form-control col-sm-5" rows="10"
+                                  placeholder="설명을 입력하세요..."></textarea>
+                    </div>
+                    <div style="width: 100%; text-align: center">
+                        <button id="button_write_feed" type="button" class="btn btn-primary" style="width: 268px">
+                            공유하기
+                        </button>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -354,11 +429,11 @@
         });
 
         // 모달 닫기 코드
-        const buttonCloseModal = document.getElementById("close_modal");
-        buttonCloseModal.addEventListener("click", e => {
-            modal.style.display = "none";
-            document.body.style.overflowY = "visible";
-        });
+        //const buttonCloseModal = document.getElementById("close_modal");
+        //buttonCloseModal.addEventListener("click", e => {
+        //    modal.style.display = "none";
+       //     document.body.style.overflowY = "visible";
+       // });
 
         // 이미지 업로드 (jquery)
         $('.modal_image_upload')
@@ -383,12 +458,13 @@
             }
         }
 
+        let files;
         function uploadFiles(e){
             e.stopPropagation();
             e.preventDefault();
 
             e.dataTransfer = e.originalEvent.dataTransfer;
-            var files =  e.dataTransfer.files;
+            files = e.dataTransfer.files;
 
             if (files.length > 1) {
                 alert('하나만 올려라.');
@@ -396,16 +472,97 @@
             }
 
             if (files[0].type.match(/image.*/)) {
-                $(e.target).css({
+                $('#modal_add_feed_content').css({
+                    display : 'flex'
+                });
+                $('.modal_image_upload_content').css({
                     "background-image": "url(" + window.URL.createObjectURL(files[0]) + ")",
                     "outline": "none",
-                    "background-size": "100% 100%"});
+                    "background-size": "contain",
+                    "background-repeat" : "no-repeat",
+                    "background-position" : "center"
+                });
+                $('#modal_add_feed').css({
+                    display : 'none'
+                });
             }else{
                 alert('이미지가 아닙니다.');
                 return;
             }
 
         }
+
+    $('#button_write_feed').on('click', ()=>{
+        const image = $('#input_image').css("background-image").replace(/^url\(['"](.+)['"]\)/, '$1');
+        const content = $('#input_content').val();
+        const profile_image = $('#input_profile_image').attr('src');
+        const user_id = $('#input_user_id').text();
+
+        const file = files[0];
+
+        let fd = new FormData();
+
+        fd.append('file', file);
+        fd.append('image', image);
+        fd.append('content', content);
+        fd.append('profile_image', profile_image);
+        fd.append('user_id', user_id);
+
+        if(image.length <= 0)
+        {
+            alert("이미지가 비어있습니다.");
+        }
+        else if(content.length <= 0)
+        {
+            alert("설명을 입력하세요");
+        }
+        else if(profile_image.length <= 0)
+        {
+            alert("프로필 이미지가 비어있습니다.");
+        }
+        else if(user_id.length <= 0)
+        {
+            alert("사용자 id가 없습니다.");
+        }
+        else{
+            writeFeed(fd);
+            console.log(files[0]);
+        }
+    });
+
+    function writeFeed(fd) {
+        $.ajax({
+            url: "/content/upload",
+            data: fd,
+            method: "POST",
+            processData: false,
+            contentType: false,
+            success: function (data) {
+                console.log("성공");
+            },
+            error: function (request, status, error) {
+                console.log("에러");
+            },
+            complete: function() {
+                console.log("무조건실행");
+                closeModal();
+                location.reload();
+            }
+        })
+    };
+
+    function closeModal() {
+        $('.modal_overlay').css({
+            display : 'none'
+        });
+        $(document.body).css({
+            overflowY : 'visible'
+        });
+    };
+
+    $('.close_modal').on("click", () => {
+        closeModal();
+    });
     </script>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/js/bootstrap.bundle.min.js" integrity="sha384-HwwvtgBNo3bZJJLYd8oVXjrBZt8cqVSpeBNS5n7C8IVInixGAoxmnlMuBnhbgrkm" crossorigin="anonymous"></script>
